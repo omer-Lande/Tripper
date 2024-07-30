@@ -132,6 +132,7 @@ public class SearchFilterActivity extends AppCompatActivity {
         return interests;
     }
 }
+
 //todo attend upload photos
 //todo check that interests are only save once each time
 //todo check all the staff are ticked/filled

@@ -1,6 +1,5 @@
 package com.example.tripper;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,12 +11,15 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +39,7 @@ public class BioActivity extends AppCompatActivity {
     private EditText bioText, ageText, nameText;
     private TextView charCountText;
     private CheckBox interestHiking, interestParties, interestCasualFun, interestRestaurants, interestMonuments, interestExploring, interestMusic, interestArt, interestSports;
-    private CheckBox maleCheckBox, femaleCheckBox;
+    private CheckBox maleCheckbox, femaleCheckbox;
     private Button nextButton;
 
     @Override
@@ -65,8 +67,8 @@ public class BioActivity extends AppCompatActivity {
         interestMusic = findViewById(R.id.interest_music);
         interestArt = findViewById(R.id.interest_art);
         interestSports = findViewById(R.id.interest_sports);
-        maleCheckBox = findViewById(R.id.male);
-        femaleCheckBox = findViewById(R.id.female);
+        maleCheckbox = findViewById(R.id.male);
+        femaleCheckbox = findViewById(R.id.female);
         nextButton = findViewById(R.id.next_button);
 
         uploadButton.setOnClickListener(v -> openFileChooser());
@@ -98,7 +100,7 @@ public class BioActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
                 && data != null && data.getData() != null) {
             imageUri = data.getData();
             profileImageView.setImageURI(imageUri);
@@ -137,8 +139,10 @@ public class BioActivity extends AppCompatActivity {
         String bio = bioText.getText().toString();
         String age = ageText.getText().toString();
         String name = nameText.getText().toString();
+        boolean isMale = maleCheckbox.isChecked();
+        boolean isFemale = femaleCheckbox.isChecked();
 
-        if (bio.isEmpty() || age.isEmpty() || name.isEmpty() || (!maleCheckBox.isChecked() && !femaleCheckBox.isChecked())) {
+        if (bio.isEmpty() || age.isEmpty() || name.isEmpty() || (!isMale && !isFemale)) {
             Toast.makeText(BioActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -147,44 +151,26 @@ public class BioActivity extends AppCompatActivity {
         user.put("bio", bio);
         user.put("age", age);
         user.put("name", name);
-        user.put("gender", maleCheckBox.isChecked() ? "Male" : "Female");
-//        user.put("interest_hiking", interestHiking.isChecked());
-//        user.put("interest_parties", interestParties.isChecked());
-//        user.put("interest_casual_fun", interestCasualFun.isChecked());
-//        user.put("interest_restaurants", interestRestaurants.isChecked());
-//        user.put("interest_monuments", interestMonuments.isChecked());
-//        user.put("interest_exploring", interestExploring.isChecked());
-//        user.put("interest_music", interestMusic.isChecked());
-//        user.put("interest_art", interestArt.isChecked());
-//        user.put("interest_sports", interestSports.isChecked());
-        user.put("swipe_count", 0);
-        user.put("last_swipe_timestamp", 0);
-        user.put("has_unlimited_swipes", false);
-        user.put("myInterests", getUserInterests());
+        user.put("male", isMale);
+        user.put("female", isFemale);
+        user.put("interest_hiking", interestHiking.isChecked());
+        user.put("interest_parties", interestParties.isChecked());
+        user.put("interest_casual_fun", interestCasualFun.isChecked());
+        user.put("interest_restaurants", interestRestaurants.isChecked());
+        user.put("interest_monuments", interestMonuments.isChecked());
+        user.put("interest_exploring", interestExploring.isChecked());
+        user.put("interest_music", interestMusic.isChecked());
+        user.put("interest_art", interestArt.isChecked());
+        user.put("interest_sports", interestSports.isChecked());
 
         db.collection("users").document(mAuth.getCurrentUser().getUid())
                 .set(user, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(BioActivity.this, "Profile saved", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(BioActivity.this, SearchFilterActivity.class);
-                    startActivity(intent);
+                    startActivity(new Intent(BioActivity.this, SearchFilterActivity.class));
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(BioActivity.this, "Failed to save profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
-    }
-
-    private Map<String, Boolean> getUserInterests() {
-        Map<String, Boolean> interests = new HashMap<>();
-        interests.put("interest_hiking", interestHiking.isChecked());
-        interests.put("interest_parties", interestParties.isChecked());
-        interests.put("interest_casual_fun", interestCasualFun.isChecked());
-        interests.put("interest_restaurants", interestRestaurants.isChecked());
-        interests.put("interest_monuments", interestMonuments.isChecked());
-        interests.put("interest_exploring", interestExploring.isChecked());
-        interests.put("interest_music", interestMusic.isChecked());
-        interests.put("interest_art", interestArt.isChecked());
-        interests.put("interest_sports", interestSports.isChecked());
-        return interests;
     }
 }

@@ -1,118 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
     tools:context=".MatchingActivity">
 
-    <!-- Top Navigation Fragment -->
-    <fragment
-        android:id="@+id/top_nav_fragment"
-        android:name="com.example.tripper.Fragments.TopNavFragment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        tools:layout="@layout/fragment_top_nav" />
-
-    <!-- Profile Image -->
-    <ImageView
-        android:id="@+id/profile_image"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/top_nav_fragment"
-        android:layout_marginTop="20dp"
-        android:src="@drawable/ic_app_icon" />
-
-    <!-- Bio Text -->
-    <TextView
-        android:id="@+id/bio_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/white"
-        android:layout_below="@id/profile_image"
-        android:layout_margin="20dp"
-        android:text="Bio" />
-
-    <!-- Swipe Icons -->
-    <RelativeLayout
-        android:id="@+id/swipe_buttons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/bio_text"
-        android:layout_centerHorizontal="true"
-        android:orientation="horizontal">
+        <fragment
+            android:id="@+id/top_nav_fragment"
+            android:name="com.example.tripper.Fragments.TopNavFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            tools:layout="@layout/fragment_top_nav" />
 
         <ImageView
-            android:id="@+id/swipe_left"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_alignParentStart="true"
-            android:src="@drawable/ic_x"
-            android:layout_margin="20dp" />
-
-        <ImageView
-            android:id="@+id/swipe_right"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_alignParentEnd="true"
-            android:src="@drawable/ic_check"
-            android:layout_margin="20dp" />
-    </RelativeLayout>
-
-    <!-- Get Unlimited Swipes Button -->
-    <Button
-        android:id="@+id/unlimited_swipes_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/swipe_buttons"
-        android:text="Get Unlimited Swipes"
-        android:backgroundTint="@color/green"
-        android:textColor="@color/white"
-        android:layout_margin="20dp" />
-
-    <!-- No More Swipes Left Message -->
-    <RelativeLayout
-        android:id="@+id/no_more_swipes_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/top_nav_fragment"
-        android:layout_centerHorizontal="true"
-        android:visibility="gone">
-
-        <ImageView
-            android:id="@+id/no_more_swipes_image"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:id="@+id/profile_image"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
             android:layout_centerHorizontal="true"
+            android:layout_marginTop="80dp"
             android:src="@drawable/ic_app_icon"
-            android:layout_marginTop="20dp" />
+            android:contentDescription="Profile Image"/>
 
         <TextView
-            android:id="@+id/no_more_swipes_text"
-            android:layout_width="match_parent"
+            android:id="@+id/bio_text"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@id/profile_image"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dp"
             android:textColor="@color/white"
-            android:textSize="24sp"
-            android:layout_below="@id/no_more_swipes_image"
-            android:layout_margin="20dp"
-            android:text="No more swipes left!" />
+            android:text="Bio"/>
+
+        <ImageButton
+            android:id="@+id/dislike_button"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_below="@id/bio_text"
+            android:layout_marginTop="20dp"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="40dp"
+            android:background="@drawable/ic_x"
+            android:contentDescription="Dislike Button"
+            android:scaleType="centerInside"
+            app:tint="@color/red" />
+
+        <ImageButton
+            android:id="@+id/like_button"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_below="@id/bio_text"
+            android:layout_marginTop="20dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="40dp"
+            android:background="@drawable/ic_check"
+            android:contentDescription="Like Button"
+            android:scaleType="centerInside"
+            app:tint="@color/green" />
 
         <Button
-            android:id="@+id/no_more_swipes_button"
+            android:id="@+id/unlimited_swipes_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Get Unlimited Swipes"
+            android:layout_below="@id/like_button"
+            android:layout_marginTop="20dp"
             android:backgroundTint="@color/green"
+            android:text="Get Unlimited Swipes"
             android:textColor="@color/white"
-            android:layout_alignParentBottom="true"
-            android:layout_below="@id/no_more_swipes_text"
-            android:layout_margin="50dp"
-            android:textSize="18sp" />
-    </RelativeLayout>
+            android:visibility="gone"/>
 
-    <!-- Bottom Navigation Fragment -->
     <fragment
         android:id="@+id/bottom_nav_fragment"
         android:name="com.example.tripper.Fragments.BottomNavFragment"
