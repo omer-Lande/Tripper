@@ -134,8 +134,3 @@ public class SearchFilterActivity extends AppCompatActivity {
 }
 
 //todo attend upload photos
-//todo check that interests are only save once each time
-//todo check all the staff are ticked/filled
-//todo check why the move to matching activity pops up in the bio activity
-//todo fix matching logics
-//todo ??
