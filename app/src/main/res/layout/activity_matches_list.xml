@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <fragment
+        android:id="@+id/top_nav_fragment"
+        android:name="com.example.tripper.Fragments.TopNavFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        tools:layout="@layout/fragment_top_nav" />
+
+
+    <ListView
+        android:id="@+id/matches_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/top_nav_fragment"
+        android:layout_above="@id/bottom_nav_fragment"/>
+
+    <fragment
+        android:id="@+id/bottom_nav_fragment"
+        android:name="com.example.tripper.Fragments.BottomNavFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        tools:layout="@layout/fragment_bottom_nav" />
+</RelativeLayout>
