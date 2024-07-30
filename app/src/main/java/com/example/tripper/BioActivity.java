@@ -5,21 +5,19 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +25,7 @@ import java.util.Map;
 public class BioActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
+    private static final String TAG = "BioActivity";
 
     private ImageView profileImageView;
     private Button uploadButton;
@@ -103,6 +102,7 @@ public class BioActivity extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
                 && data != null && data.getData() != null) {
             imageUri = data.getData();
+            Log.d(TAG, "Selected image URI: " + imageUri.toString());
             profileImageView.setImageURI(imageUri);
             uploadImage();
         }
@@ -110,13 +110,26 @@ public class BioActivity extends AppCompatActivity {
 
     private void uploadImage() {
         if (imageUri != null) {
-            StorageReference fileReference = storageReference.child("profile_images/" + mAuth.getCurrentUser().getUid() + ".jpg");
+            String userId = mAuth.getCurrentUser().getUid();
+            String filePath = "profile_images/" + userId + ".jpg";
+            StorageReference fileReference = storageReference.child(filePath);
+
+            Log.d(TAG, "Uploading to: " + filePath);
+
             fileReference.putFile(imageUri)
-                    .addOnSuccessListener(taskSnapshot -> fileReference.getDownloadUrl().addOnSuccessListener(uri -> {
-                        saveImageUri(uri.toString());
-                    }))
+                    .addOnSuccessListener(taskSnapshot -> {
+                        fileReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                            Log.d(TAG, "File available at: " + uri.toString());
+                            saveImageUri(uri.toString());
+                        });
+                    })
                     .addOnFailureListener(e -> {
                         Toast.makeText(BioActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Upload failed: ", e);
+                    })
+                    .addOnProgressListener(snapshot -> {
+                        double progress = (100.0 * snapshot.getBytesTransferred() / snapshot.getTotalByteCount());
+                        Log.d(TAG, "Upload is " + progress + "% done");
                     });
         }
     }
@@ -132,8 +145,10 @@ public class BioActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(BioActivity.this, "Failed to save image URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Failed to save image URL: ", e);
                 });
     }
+
 
     private void saveProfile() {
         String bio = bioText.getText().toString();
@@ -153,15 +168,7 @@ public class BioActivity extends AppCompatActivity {
         user.put("name", name);
         user.put("male", isMale);
         user.put("female", isFemale);
-        user.put("interest_hiking", interestHiking.isChecked());
-        user.put("interest_parties", interestParties.isChecked());
-        user.put("interest_casual_fun", interestCasualFun.isChecked());
-        user.put("interest_restaurants", interestRestaurants.isChecked());
-        user.put("interest_monuments", interestMonuments.isChecked());
-        user.put("interest_exploring", interestExploring.isChecked());
-        user.put("interest_music", interestMusic.isChecked());
-        user.put("interest_art", interestArt.isChecked());
-        user.put("interest_sports", interestSports.isChecked());
+        user.putAll(getUserInterests());
 
         db.collection("users").document(mAuth.getCurrentUser().getUid())
                 .set(user, SetOptions.merge())
@@ -171,6 +178,21 @@ public class BioActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(BioActivity.this, "Failed to save profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Failed to save profile: ", e);
                 });
+    }
+
+    private Map<String, Object> getUserInterests() {
+        Map<String, Object> interests = new HashMap<>();
+        interests.put("interest_hiking", interestHiking.isChecked());
+        interests.put("interest_parties", interestParties.isChecked());
+        interests.put("interest_casual_fun", interestCasualFun.isChecked());
+        interests.put("interest_restaurants", interestRestaurants.isChecked());
+        interests.put("interest_monuments", interestMonuments.isChecked());
+        interests.put("interest_exploring", interestExploring.isChecked());
+        interests.put("interest_music", interestMusic.isChecked());
+        interests.put("interest_art", interestArt.isChecked());
+        interests.put("interest_sports", interestSports.isChecked());
+        return interests;
     }
 }
