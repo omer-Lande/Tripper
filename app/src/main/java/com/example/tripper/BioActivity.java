@@ -13,6 +13,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
@@ -103,7 +105,7 @@ public class BioActivity extends AppCompatActivity {
                 && data != null && data.getData() != null) {
             imageUri = data.getData();
             Log.d(TAG, "Selected image URI: " + imageUri.toString());
-            profileImageView.setImageURI(imageUri);
+            //profileImageView.setImageURI(imageUri);
             uploadImage();
         }
     }
@@ -121,6 +123,11 @@ public class BioActivity extends AppCompatActivity {
                         fileReference.getDownloadUrl().addOnSuccessListener(uri -> {
                             Log.d(TAG, "File available at: " + uri.toString());
                             saveImageUri(uri.toString());
+                            Glide.with(this)
+                                    .load(uri.toString())
+                                    .fitCenter()
+                                    .into(profileImageView);
+
                         });
                     })
                     .addOnFailureListener(e -> {
@@ -148,7 +155,6 @@ public class BioActivity extends AppCompatActivity {
                     Log.e(TAG, "Failed to save image URL: ", e);
                 });
     }
-
 
     private void saveProfile() {
         String bio = bioText.getText().toString();
