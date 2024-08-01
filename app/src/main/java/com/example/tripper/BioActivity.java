@@ -21,6 +21,7 @@ import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -175,6 +176,8 @@ public class BioActivity extends AppCompatActivity {
         user.put("male", isMale);
         user.put("female", isFemale);
         user.putAll(getUserInterests());
+        user.put("likedUsers", new ArrayList<String>());
+        user.put("matches", new ArrayList<String>());
 
         db.collection("users").document(mAuth.getCurrentUser().getUid())
                 .set(user, SetOptions.merge())

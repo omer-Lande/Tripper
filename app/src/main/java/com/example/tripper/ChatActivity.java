@@ -117,3 +117,5 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 }
+//todo check why failed to send message! testgirl10
+//todo check why failed to load messages! testgirl10

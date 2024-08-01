@@ -22,17 +22,30 @@
             android:layout_centerHorizontal="true"
             android:layout_marginTop="80dp"
             android:src="@drawable/ic_app_icon"
-            android:contentDescription="Profile Image"/>
+            android:contentDescription="Profile Image" />
 
         <TextView
-            android:id="@+id/bio_text"
+            android:id="@+id/profile_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/profile_image"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="10dp"
+            android:text="Name"
+            android:visibility="invisible"
             android:textColor="@color/white"
-            android:text="Bio"/>
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/bio_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/profile_name"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/white"
+            android:text="Loading" />
 
         <ImageButton
             android:id="@+id/dislike_button"
@@ -69,13 +82,13 @@
             android:backgroundTint="@color/green"
             android:text="Get Unlimited Swipes"
             android:textColor="@color/white"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
-    <fragment
-        android:id="@+id/bottom_nav_fragment"
-        android:name="com.example.tripper.Fragments.BottomNavFragment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        tools:layout="@layout/fragment_bottom_nav" />
+        <fragment
+            android:id="@+id/bottom_nav_fragment"
+            android:name="com.example.tripper.Fragments.BottomNavFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            tools:layout="@layout/fragment_bottom_nav" />
 </RelativeLayout>
