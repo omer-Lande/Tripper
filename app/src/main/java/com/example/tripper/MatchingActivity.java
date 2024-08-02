@@ -42,6 +42,7 @@ public class MatchingActivity extends AppCompatActivity {
     private ImageButton dislikeButton, likeButton;
     private Button unlimitedSwipesButton;
     private List<DocumentSnapshot> potentialMatches;
+    List<String> seenUsers;
     private int currentMatchIndex;
     private int swipeCount;
     private boolean hasUnlimitedSwipes;
@@ -88,7 +89,6 @@ public class MatchingActivity extends AppCompatActivity {
     }
 
     private void loadUserProfile() {
-        Log.d(TAG, "loadUserProfile: Loading user profile");
         String userId = mAuth.getCurrentUser().getUid();
         usersRef.document(userId).get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
@@ -103,103 +103,105 @@ public class MatchingActivity extends AppCompatActivity {
                 } else {
                     hasUnlimitedSwipes = false;
                 }
-                Log.d(TAG, "loadUserProfile: User profile loaded successfully");
-            } else {
-                Log.d(TAG, "loadUserProfile: User profile does not exist");
+
+
+                if (documentSnapshot.contains("seenUsers")) {
+                    seenUsers = (List<String>) documentSnapshot.get("seenUsers");
+                } else {
+                    seenUsers = new ArrayList<>();
+                    usersRef.document(userId).update("seenUsers", seenUsers);
+                }
             }
-        }).addOnFailureListener(e -> Log.e(TAG, "loadUserProfile: Error loading user profile", e));
+        });
     }
 
     private void loadPotentialMatches() {
-        Log.d(TAG, "loadPotentialMatches: Loading potential matches");
+        Log.d(TAG, "loadPotentialMatches: Start loading potential matches");
         String userId = mAuth.getCurrentUser().getUid();
-
         usersRef.document(userId).get().addOnSuccessListener(documentSnapshot -> {
+            Log.d(TAG, "loadPotentialMatches: Retrieved current user document");
             if (documentSnapshot.exists()) {
-                Log.d(TAG, "loadPotentialMatches: User document exists");
+                List<String> seenUsers = (List<String>) documentSnapshot.get("seenUsers");
+                if (seenUsers == null) {
+                    seenUsers = new ArrayList<>();
+                }
+                final List<String> finalSeenUsers = seenUsers;
+                Log.d(TAG, "loadPotentialMatches: Retrieved seen users: " + finalSeenUsers);
 
-                // Retrieve the user's filter interests
-                List<String> filterInterests = new ArrayList<>();
+                List<String> interests = new ArrayList<>();
                 for (Map.Entry<String, Object> entry : documentSnapshot.getData().entrySet()) {
                     if (entry.getKey().startsWith("filter_interest_") && (boolean) entry.getValue()) {
-                        filterInterests.add(entry.getKey().substring("filter_".length()));
+                        interests.add(entry.getKey().substring("filter_".length()));
                     }
                 }
-                Log.d(TAG, "loadPotentialMatches: Filter interests: " + filterInterests);
 
-                // Check if interests are empty
-                if (filterInterests.isEmpty()) {
-                    Log.d(TAG, "loadPotentialMatches: No filter interests found");
+                if (interests.isEmpty()) {
+                    Log.d(TAG, "loadPotentialMatches: Interests are empty");
                     Toast.makeText(MatchingActivity.this, "Please set your interests in search filters.", Toast.LENGTH_SHORT).show();
                     finish();
                     return;
                 }
 
-                // Retrieve gender preference and age range
-                String travelWith = documentSnapshot.getString("travelWith");
+                Log.d(TAG, "loadPotentialMatches: Querying with interests: " + interests);
+
                 String ageRange = documentSnapshot.getString("ageRange");
+                Log.d(TAG, "loadPotentialMatches: Retrieved age range: " + ageRange);
 
-                if (travelWith == null || ageRange == null) {
-                    Log.d(TAG, "loadPotentialMatches: Gender preference or age range not set");
-                    Toast.makeText(MatchingActivity.this, "Please set your gender preference and age range in search filters.", Toast.LENGTH_SHORT).show();
-                    finish();
-                    return;
-                }
+                String[] ageRangeArray = ageRange != null ? ageRange.split(" - ") : new String[0];
+                final int minAge = ageRangeArray.length > 0 ? Integer.parseInt(ageRangeArray[0]) : 0;
+                final int maxAge = ageRangeArray.length > 1 ? Integer.parseInt(ageRangeArray[1]) : 0;
+                Log.d(TAG, "loadPotentialMatches: Parsed age range: " + minAge + " - " + maxAge);
 
-                String[] ageRangeSplit = ageRange.split(" - ");
-                int minAge = Integer.parseInt(ageRangeSplit[0]);
-                int maxAge = Integer.parseInt(ageRangeSplit[1]);
+                final String travelWith = documentSnapshot.getString("travelWith");
+                Log.d(TAG, "loadPotentialMatches: Retrieved travelWith: " + travelWith);
 
-                Log.d(TAG, "loadPotentialMatches: Travel with: " + travelWith);
-                Log.d(TAG, "loadPotentialMatches: Age range: " + minAge + " - " + maxAge);
-
-                // Firestore query to find potential matches based on interests
                 usersRef.get().addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         QuerySnapshot querySnapshot = task.getResult();
                         for (QueryDocumentSnapshot document : querySnapshot) {
-                            if (!document.getId().equals(userId)) {
-                                // Check interests
-                                boolean matchesInterests = false;
-                                for (String interest : filterInterests) {
-                                    if (document.getBoolean(interest) != null && document.getBoolean(interest)) {
-                                        matchesInterests = true;
+                            Log.d(TAG, "loadPotentialMatches: Checking potential match: " + document.getId());
+                            if (!document.getId().equals(userId) && !finalSeenUsers.contains(document.getId())) {
+                                String gender = document.getString("gender");
+                                String ageString = document.getString("age");
+                                boolean hasMatchingInterest = false;
+
+                                for (String interest : interests) {
+                                    Boolean interestValue = document.getBoolean(interest);
+                                    if (interestValue != null && interestValue) {
+                                        hasMatchingInterest = true;
                                         break;
                                     }
                                 }
 
-                                // Check gender
-                                boolean matchesGender = false;
-                                if (travelWith.equals("Both")) {
-                                    matchesGender = true;
-                                } else if (travelWith.equals("Men") && document.getBoolean("male") != null && document.getBoolean("male")) {
-                                    matchesGender = true;
-                                } else if (travelWith.equals("Women") && document.getBoolean("female") != null && document.getBoolean("female")) {
-                                    matchesGender = true;
-                                }
-
-                                // Check age range
-                                String ageString = document.getString("age");
-                                boolean matchesAge = false;
-                                if (ageString != null) {
-                                    try {
+                                if (hasMatchingInterest) {
+                                    Log.d(TAG, "loadPotentialMatches: Found matching interest for: " + document.getId());
+                                    if (ageString != null && !ageString.isEmpty()) {
                                         int age = Integer.parseInt(ageString);
-                                        matchesAge = age >= minAge && age <= maxAge;
-                                    } catch (NumberFormatException e) {
-                                        Log.e(TAG, "loadPotentialMatches: Invalid age format for user: " + document.getId(), e);
+                                        Log.d(TAG, "loadPotentialMatches: Retrieved age: " + age);
+                                        boolean genderMatches = travelWith != null && (travelWith.equals("Both") || (gender != null && gender.equals(travelWith)));
+                                        Log.d(TAG, "loadPotentialMatches: Gender matches: " + genderMatches + ", Age matches: " + (age >= minAge && age <= maxAge));
+                                        if (age >= minAge && age <= maxAge && genderMatches) {
+                                            potentialMatches.add(document);
+                                            Log.d(TAG, "loadPotentialMatches: Added potential match: " + document.getId());
+                                        } else {
+                                            Log.d(TAG, "loadPotentialMatches: Gender or age did not match for: " + document.getId());
+                                        }
+                                    } else {
+                                        Log.d(TAG, "loadPotentialMatches: Age not available for: " + document.getId());
                                     }
+                                } else {
+                                    Log.d(TAG, "loadPotentialMatches: No matching interests for: " + document.getId());
                                 }
-
-                                if (matchesInterests && matchesGender && matchesAge) {
-                                    potentialMatches.add(document);
-                                }
+                            } else {
+                                Log.d(TAG, "loadPotentialMatches: User has already seen: " + document.getId());
                             }
                         }
-                        Log.d(TAG, "loadPotentialMatches: Number of potential matches found: " + potentialMatches.size());
+
                         if (potentialMatches.isEmpty()) {
-                            Toast.makeText(MatchingActivity.this, "No matches found.", Toast.LENGTH_SHORT).show();
+                            profileNameTextView.setText("No more matches left. Consider changing your filters.");
+                        } else {
+                            showNextMatch();
                         }
-                        showNextMatch();
                     } else {
                         Log.e(TAG, "Error getting potential matches: ", task.getException());
                     }
@@ -207,8 +209,6 @@ public class MatchingActivity extends AppCompatActivity {
             }
         });
     }
-
-
 
 
 
@@ -240,27 +240,28 @@ public class MatchingActivity extends AppCompatActivity {
     }
 
     private void swipe(boolean liked) {
-        Log.d(TAG, "swipe: Swiping " + (liked ? "right" : "left"));
         if (!hasUnlimitedSwipes && swipeCount >= 15) {
-            Log.d(TAG, "swipe: No more swipes left");
             Toast.makeText(MatchingActivity.this, "No more swipes left. Get unlimited swipes!", Toast.LENGTH_SHORT).show();
+            dislikeButton.setVisibility(View.GONE);
+            likeButton.setVisibility(View.GONE);
             unlimitedSwipesButton.setVisibility(View.VISIBLE);
-            dislikeButton.setVisibility(View.INVISIBLE);
-            dislikeButton.setEnabled(false);
-            likeButton.setVisibility(View.INVISIBLE);
-            likeButton.setEnabled(false);
             return;
         }
 
+        DocumentSnapshot match = potentialMatches.get(currentMatchIndex - 1);
+        String likedUserId = match.getId();
+        seenUsers.add(likedUserId);
+        usersRef.document(mAuth.getCurrentUser().getUid())
+                .update("seenUsers", FieldValue.arrayUnion(likedUserId));
+
         if (liked) {
-            DocumentSnapshot match = potentialMatches.get(currentMatchIndex - 1);
-            String likedUserId = match.getId();
             handleLike(likedUserId);
         }
 
         swipeCount++;
         showNextMatch();
     }
+
 
     private void handleLike(String likedUserId) {
         Log.d(TAG, "handleLike: Liked user ID " + likedUserId);
