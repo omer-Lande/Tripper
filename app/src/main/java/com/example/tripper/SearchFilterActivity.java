@@ -132,6 +132,3 @@ public class SearchFilterActivity extends AppCompatActivity {
         return interests;
     }
 }
-
-//todo boytest1 and girltest1 finish
-//attend matching activity

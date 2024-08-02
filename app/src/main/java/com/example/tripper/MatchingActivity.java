@@ -346,5 +346,3 @@ public class MatchingActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.e(TAG, "processPayment: Error updating user profile for unlimited swipes", e));
     }
 }
-//todo in production dont show users i liked or disliked, they only for testing
-// fix the users i like.
