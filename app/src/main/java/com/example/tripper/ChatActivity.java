@@ -1,7 +1,7 @@
 package com.example.tripper;
 
 import android.os.Bundle;
-import android.view.View;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -13,11 +13,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.example.tripper.Util.ChatMessage;
 import com.example.tripper.Util.ChatAdapter;
 import java.util.ArrayList;
@@ -26,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 public class ChatActivity extends AppCompatActivity {
+
+    private static final String TAG = "ChatActivity";
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -54,8 +54,17 @@ public class ChatActivity extends AppCompatActivity {
         chatUserId = getIntent().getStringExtra("chatUserId");
         chatUserName = getIntent().getStringExtra("chatUserName");
 
-        messagesRef = db.collection("chats").document(currentUserId)
-                .collection("messages").document(chatUserId).collection("messages");
+        if (chatUserId == null || chatUserName == null) {
+            Toast.makeText(this, "Chat user not specified", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        Log.d(TAG, "Chatting with: " + chatUserId + " (" + chatUserName + ")");
+
+        // Collection for storing messages between users
+        String chatId = generateChatId(currentUserId, chatUserId);
+        messagesRef = db.collection("chats").document(chatId).collection("messages");
 
         chatTitle = findViewById(R.id.chat_title);
         chatTitle.setText("Chat with " + chatUserName);
@@ -90,32 +99,33 @@ public class ChatActivity extends AppCompatActivity {
         messagesRef.add(message).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 messageInput.setText("");
+                Log.d(TAG, "Message sent successfully");
             } else {
-                Toast.makeText(ChatActivity.this, "Failed to send message", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Failed to send message", task.getException());
             }
         });
     }
 
     private void loadMessages() {
-        messagesRef.orderBy("timestamp").addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-                if (e != null) {
-                    Toast.makeText(ChatActivity.this, "Failed to load messages", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
+        messagesRef.orderBy("timestamp").addSnapshotListener((queryDocumentSnapshots, e) -> {
+            if (e != null) {
+                Log.e(TAG, "Failed to load messages", e);
+                return;
+            }
+            if (queryDocumentSnapshots != null) {
                 for (DocumentChange documentChange : queryDocumentSnapshots.getDocumentChanges()) {
                     if (documentChange.getType() == DocumentChange.Type.ADDED) {
                         ChatMessage chatMessage = documentChange.getDocument().toObject(ChatMessage.class);
                         chatMessageList.add(chatMessage);
-                        chatAdapter.notifyDataSetChanged();
-                        chatListView.smoothScrollToPosition(chatMessageList.size() - 1);
                     }
                 }
+                chatAdapter.notifyDataSetChanged();
+                chatListView.smoothScrollToPosition(chatMessageList.size() - 1);
             }
         });
     }
+
+    private String generateChatId(String userId1, String userId2) {
+        return userId1.compareTo(userId2) < 0 ? userId1 + "_" + userId2 : userId2 + "_" + userId1;
+    }
 }
-//todo check why failed to send message! testgirl10
-//todo check why failed to load messages! testgirl10
