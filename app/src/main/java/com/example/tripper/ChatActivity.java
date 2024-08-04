@@ -17,6 +17,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
@@ -46,6 +49,7 @@ public class ChatActivity extends AppCompatActivity {
     private RecyclerView chatListView;
     private EditText messageInput;
     private Button sendButton;
+    private LinearLayoutManager linearLayoutManager;
 
     private String messageRefference;
     private String chatUserImage;
@@ -53,7 +57,8 @@ public class ChatActivity extends AppCompatActivity {
     private String chatUserId;
     private String chatUserName;
     private ChatAdapter chatAdapter;
-    private List<ChatMessage> chatMessageList;
+    private final List<ChatMessage> chatMessageList = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +73,7 @@ public class ChatActivity extends AppCompatActivity {
         chatUserId = getIntent().getStringExtra("chatUserId");
         chatUserName = getIntent().getStringExtra("chatUserName");
         chatUserImage = getIntent().getStringExtra("userImage");
+        chatAdapter = new ChatAdapter(chatMessageList);
         Toast.makeText(ChatActivity.this, "Welcome",Toast.LENGTH_SHORT).show();
 
        // InitializeControllers();
@@ -88,12 +94,12 @@ public class ChatActivity extends AppCompatActivity {
         chatTitle.setText("Chat with " + chatUserName);
 
         chatListView = findViewById(R.id.chat_list_view);
-        chatListView.setLayoutManager(new LinearLayoutManager(this));
+        linearLayoutManager = new LinearLayoutManager(this);
+        chatListView.setLayoutManager(linearLayoutManager);
         messageInput = findViewById(R.id.message_input);
         sendButton = findViewById(R.id.send_button);
 
-        chatMessageList = new ArrayList<>();
-        chatAdapter = new ChatAdapter(this, chatMessageList);
+        chatAdapter = new ChatAdapter(chatMessageList);
         chatListView.setAdapter(chatAdapter);
 
         sendButton.setOnClickListener(v -> sendMessage());
@@ -101,9 +107,38 @@ public class ChatActivity extends AppCompatActivity {
         //loadMessages();
     }
 
-    private void InitializeControllers() {
-        userName = findViewById(R.id.custom_profile_name);
-        userImage = findViewById(R.id.custom_profile_IMG);
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        RootRef.child("Messages").child(currentUserId).child(chatUserId).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                ChatMessage messages = snapshot.getValue(ChatMessage.class);
+                chatMessageList.add(messages);
+                chatAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 
     private void sendMessage() {
