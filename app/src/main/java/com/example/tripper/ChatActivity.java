@@ -174,4 +174,4 @@ public class ChatActivity extends AppCompatActivity {
         });
     }
 }
-// TODO: 8/4/2024 remove un necessary toasts, add image for chat if possible
+

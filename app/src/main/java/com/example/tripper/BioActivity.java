@@ -205,3 +205,4 @@ public class BioActivity extends AppCompatActivity {
         return interests;
     }
 }
+// TODO: 8/4/2024 change female and male to radio button 

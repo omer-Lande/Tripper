@@ -10,3 +10,5 @@ public class MyApplication extends Application {
         FirebaseApp.initializeApp(this);
     }
 }
+
+// TODO: 8/4/2024 remove un necessary toasts 
