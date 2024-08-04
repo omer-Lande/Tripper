@@ -44,6 +44,7 @@ public class MatchesListActivity extends AppCompatActivity {
             Intent intent = new Intent(MatchesListActivity.this, ChatActivity.class);
             intent.putExtra("chatUserId", match.getId());
             intent.putExtra("chatUserName", match.getName());
+            intent.putExtra("userImage", match.getImageUrl());
             startActivity(intent);
         });
         matchesRecyclerView.setAdapter(adapter);
@@ -87,3 +88,6 @@ public class MatchesListActivity extends AppCompatActivity {
         }).addOnFailureListener(e -> Log.e(TAG, "Error getting user document: ", e));
     }
 }
+
+
+//todo andriud whatsapp andriod studio  46/

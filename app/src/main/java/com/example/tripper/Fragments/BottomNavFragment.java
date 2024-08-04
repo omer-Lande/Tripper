@@ -9,6 +9,8 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.viewpager.widget.ViewPager;
+
 import com.example.tripper.BioActivity;
 import com.example.tripper.MatchingActivity;
 import com.example.tripper.MatchesListActivity;
