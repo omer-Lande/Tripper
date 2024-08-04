@@ -172,43 +172,6 @@ public class ChatActivity extends AppCompatActivity {
             }
             messageInput.setText("");
         });
-
-     /*   Map<String, Object> message = new HashMap<>();
-        message.put("senderId", currentUserId);
-        message.put("receiverId", chatUserId);
-        message.put("message", messageText);
-        message.put("timestamp", System.currentTimeMillis());
-
-        messagesRef.add(message).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                messageInput.setText("");
-                Log.d(TAG, "Message sent successfully");
-            } else {
-                Log.e(TAG, "Failed to send message", task.getException());
-            }
-        });*/
     }
-/*
-    private void loadMessages() {
-        messagesRef.orderBy("timestamp").addSnapshotListener((queryDocumentSnapshots, e) -> {
-            if (e != null) {
-                Log.e(TAG, "Failed to load messages", e);
-                return;
-            }
-            if (queryDocumentSnapshots != null) {
-                for (DocumentChange documentChange : queryDocumentSnapshots.getDocumentChanges()) {
-                    if (documentChange.getType() == DocumentChange.Type.ADDED) {
-                        ChatMessage chatMessage = documentChange.getDocument().toObject(ChatMessage.class);
-                        chatMessageList.add(chatMessage);
-                    }
-                }
-                chatAdapter.notifyDataSetChanged();
-                chatListView.smoothScrollToPosition(chatMessageList.size() - 1);
-            }
-        });
-    }
-
-    private String generateChatId(String userId1, String userId2) {
-        return userId1.compareTo(userId2) < 0 ? userId1 + "_" + userId2 : userId2 + "_" + userId1;
-    }*/
 }
+// TODO: 8/4/2024 remove un necessary toasts, add image for chat if possible
