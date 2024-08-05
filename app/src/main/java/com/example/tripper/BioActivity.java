@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,7 +42,7 @@ public class BioActivity extends AppCompatActivity {
     private EditText bioText, ageText, nameText;
     private TextView charCountText;
     private CheckBox interestHiking, interestParties, interestCasualFun, interestRestaurants, interestMonuments, interestExploring, interestMusic, interestArt, interestSports;
-    private CheckBox maleCheckbox, femaleCheckbox;
+    private RadioButton maleRadioButton, femaleRadioButton;
     private Button nextButton;
 
     @Override
@@ -69,8 +70,8 @@ public class BioActivity extends AppCompatActivity {
         interestMusic = findViewById(R.id.interest_music);
         interestArt = findViewById(R.id.interest_art);
         interestSports = findViewById(R.id.interest_sports);
-        maleCheckbox = findViewById(R.id.male);
-        femaleCheckbox = findViewById(R.id.female);
+        maleRadioButton = findViewById(R.id.radio_male);
+        femaleRadioButton = findViewById(R.id.radio_female);
         nextButton = findViewById(R.id.next_button);
 
         uploadButton.setOnClickListener(v -> openFileChooser());
@@ -161,8 +162,8 @@ public class BioActivity extends AppCompatActivity {
         String bio = bioText.getText().toString();
         String age = ageText.getText().toString();
         String name = nameText.getText().toString();
-        boolean isMale = maleCheckbox.isChecked();
-        boolean isFemale = femaleCheckbox.isChecked();
+        boolean isMale = maleRadioButton.isChecked();
+        boolean isFemale = femaleRadioButton.isChecked();
 
         if (bio.isEmpty() || age.isEmpty() || name.isEmpty() || (!isMale && !isFemale)) {
             Toast.makeText(BioActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
@@ -205,4 +206,3 @@ public class BioActivity extends AppCompatActivity {
         return interests;
     }
 }
-// TODO: 8/4/2024 change female and male to radio button 

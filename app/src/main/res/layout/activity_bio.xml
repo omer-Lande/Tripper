@@ -82,31 +82,29 @@
                     android:layout_marginStart="5dp"/>
             </LinearLayout>
 
-            <LinearLayout
+            <RadioGroup
+                android:id="@+id/radio_group_travel_with"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:weightSum="2"
-                android:layout_marginBottom="10dp">
+                android:layout_marginTop="10dp">
 
-                <CheckBox
-                    android:id="@+id/male"
-                    android:layout_width="0dp"
+                <RadioButton
+                    android:id="@+id/radio_male"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:text="Male"
-                    android:textColor="@color/white"
-                    android:padding="12dp"/>
+                    android:textColor="@color/white"/>
 
-                <CheckBox
-                    android:id="@+id/female"
-                    android:layout_width="0dp"
+                <RadioButton
+                    android:id="@+id/radio_female"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:text="Female"
-                    android:textColor="@color/white"
-                    android:padding="12dp"/>
-            </LinearLayout>
+                    android:textColor="@color/white"/>
+
+            </RadioGroup>
+
 
             <EditText
                 android:id="@+id/bio_text"
