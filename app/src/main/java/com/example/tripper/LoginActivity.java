@@ -79,57 +79,61 @@ public class LoginActivity extends AppCompatActivity {
         String email = emailEditText.getText().toString();
         String password = passwordEditText.getText().toString();
 
-        if (TextUtils.isEmpty(email)) {
-            Toast.makeText(LoginActivity.this, "Please enter your email", Toast.LENGTH_SHORT).show();
-            return;
-        }
+       if(checkEmptyEmailAndPassword(email, password)) {
 
-        if (TextUtils.isEmpty(password)) {
-            Toast.makeText(LoginActivity.this, "Please enter your password", Toast.LENGTH_SHORT).show();
-            return;
+            mAuth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(this, task -> {
+                        if (task.isSuccessful()) {
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            Intent intent = new Intent(LoginActivity.this, MatchingActivity.class);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            Toast.makeText(LoginActivity.this, "Authentication failed", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
-
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        Intent intent = new Intent(LoginActivity.this, MatchingActivity.class);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Authentication failed", Toast.LENGTH_SHORT).show();
-                    }
-                });
     }
+
 
     private void signupUser() {
         String email = emailEditText.getText().toString();
         String password = passwordEditText.getText().toString();
 
+        if(checkEmptyEmailAndPassword(email, password)) {
+            if(password.length() >= 6) {
+                mAuth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(this, task -> {
+                            if (task.isSuccessful()) {
+                                FirebaseUser user = mAuth.getCurrentUser();
+                                createUserProfile(user);
+                                Intent intent = new Intent(LoginActivity.this, BioActivity.class);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Toast.makeText(LoginActivity.this, "Sign Up failed: \n" + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                Log.d(TAG, "the internal error is: " + task.getException().getMessage());
+                            }
+                        });
+            }
+            else
+                Toast.makeText(LoginActivity.this,"password must be atleast 6 characters", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean checkEmptyEmailAndPassword(String email, String password) {
         if (TextUtils.isEmpty(email)) {
             Toast.makeText(LoginActivity.this, "Please enter your email", Toast.LENGTH_SHORT).show();
-            return;
+            return false;
         }
 
         if (TextUtils.isEmpty(password)) {
             Toast.makeText(LoginActivity.this, "Please enter your password", Toast.LENGTH_SHORT).show();
-            return;
+            return false;
         }
-
-        mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        createUserProfile(user);
-                        Intent intent = new Intent(LoginActivity.this, BioActivity.class);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Sign Up failed: \n" + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                        Log.d(TAG,"the enternal error is: " + task.getException().getMessage());
-                    }
-                });
+        return true;
     }
+
 
     private void createUserProfile(FirebaseUser user) {
         String uid = user.getUid();
