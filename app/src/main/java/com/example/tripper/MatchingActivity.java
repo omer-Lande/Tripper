@@ -1,5 +1,9 @@
 package com.example.tripper;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -106,12 +110,15 @@ public class MatchingActivity extends AppCompatActivity {
 
     private void loadPotentialMatches() {
         String userId = mAuth.getCurrentUser().getUid();
+        Log.d(TAG, "got userId: " + userId);
         usersRef.document(userId).get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
+                Log.d(TAG, "got documentSnapshot:");
                 List<String> interests = new ArrayList<>();
                 for (Map.Entry<String, Object> entry : documentSnapshot.getData().entrySet()) {
                     if (entry.getKey().startsWith("filter_interest_") && (boolean) entry.getValue()) {
                         interests.add(entry.getKey());
+                        Log.d(TAG, "got interests:");
                     }
                 }
 
@@ -129,11 +136,23 @@ public class MatchingActivity extends AppCompatActivity {
 
                 usersRef.get().addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        Log.d(TAG, "Task Successful:");
                         QuerySnapshot querySnapshot = task.getResult();
                         for (QueryDocumentSnapshot document : querySnapshot) {
                             if (!document.getId().equals(userId) && (seenUsers == null || !seenUsers.contains(document.getId()))) {
-                                String gender = document.getString("gender");
+                                Boolean isMan = document.getBoolean("male");
+                                Boolean isWoman = document.getBoolean("female");
                                 String ageString = document.getString("age");
+                                Log.d(TAG, "got isMan: " + isMan);
+                                Log.d(TAG, "got isWoman: " + isWoman);
+                                Log.d(TAG, "got age: " + ageString);
+
+                                String gender = null;
+                                if (isMan != null && isMan) {
+                                    gender = "men";
+                                } else if (isWoman != null && isWoman) {
+                                    gender = "women";
+                                }
 
                                 // Check if this user matches any of the interests
                                 boolean interestMatches = false;
@@ -146,9 +165,11 @@ public class MatchingActivity extends AppCompatActivity {
 
                                 if (ageString != null && !ageString.isEmpty() && interestMatches) {
                                     int age = Integer.parseInt(ageString);
-                                    boolean genderMatches = travelWith.equalsIgnoreCase("Both") || gender.equalsIgnoreCase(travelWith);
-                                    if (age >= minAge && age <= maxAge && genderMatches) {
-                                        potentialMatches.add(document);
+                                    if ("both".equalsIgnoreCase(travelWith) || (gender != null && gender.equalsIgnoreCase(travelWith))) {
+                                        boolean genderMatches = "both".equalsIgnoreCase(travelWith) || gender.equalsIgnoreCase(travelWith);
+                                        if (age >= minAge && age <= maxAge && genderMatches) {
+                                            potentialMatches.add(document);
+                                        }
                                     }
                                 }
                             }
@@ -252,7 +273,7 @@ public class MatchingActivity extends AppCompatActivity {
                                         // The liked user has liked the current user, add to matches
                                         currentUserRef.update("matches", FieldValue.arrayUnion(likedUserId))
                                                 .addOnSuccessListener(aVoid -> {
-                                                    Toast.makeText(MatchingActivity.this, "You have a match", Toast.LENGTH_SHORT).show();
+                                                    showMatchIconAnimation();
                                                     Log.d(TAG, "checkForMatches: Match added to current user");
                                                 })
                                                 .addOnFailureListener(e -> Log.e(TAG, "checkForMatches: Error adding match to current user", e));
@@ -268,6 +289,27 @@ public class MatchingActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+
+    private void showMatchIconAnimation() {
+        ImageView matchIcon = findViewById(R.id.match_icon);
+        matchIcon.setVisibility(View.VISIBLE);
+
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(matchIcon, "scaleX", 0f, 1.5f, 1f);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(matchIcon, "scaleY", 0f, 1.5f, 1f);
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(scaleX, scaleY);
+        animatorSet.setDuration(1000);
+
+        animatorSet.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                matchIcon.setVisibility(View.GONE);
+            }
+        });
+
+        animatorSet.start();
     }
 
 
