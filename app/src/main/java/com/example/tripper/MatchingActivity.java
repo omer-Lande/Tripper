@@ -235,15 +235,32 @@ public class MatchingActivity extends AppCompatActivity {
         Log.d(TAG, "handleLike: Liked user ID " + likedUserId);
         String userId = mAuth.getCurrentUser().getUid();
         DocumentReference currentUserRef = usersRef.document(userId);
+        DocumentReference likedUserRef = usersRef.document(likedUserId);
 
-        // Add the liked user to the current user's list of liked users
+        // First, add the liked user to the current user's list of liked users
         currentUserRef.update("likedUsers", FieldValue.arrayUnion(likedUserId))
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "handleLike: Liked user added to current user's list"))
                 .addOnFailureListener(e -> Log.e(TAG, "handleLike: Error adding liked user", e));
 
-        currentUserRef.update("matches", FieldValue.arrayUnion(likedUserId))
-                .addOnSuccessListener(aVoid -> Log.d(TAG,"handleLike: likedUser is a match"))
-                .addOnFailureListener(e-> Log.e(TAG,"handleLike: Error adding match users", e));
+        // Now, check if the liked user has already liked the current user
+        likedUserRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                List<String> likedUsersOfLikedUser = (List<String>) documentSnapshot.get("likedUsers");
+                if (likedUsersOfLikedUser != null && likedUsersOfLikedUser.contains(userId)) {
+                    // The liked user has already liked the current user, so add them to the matches
+                    currentUserRef.update("matches", FieldValue.arrayUnion(likedUserId))
+                            .addOnSuccessListener(aVoid -> {
+                                showMatchIconAnimation();
+                                Log.d(TAG, "handleLike: Match added to current user");
+                            })
+                            .addOnFailureListener(e -> Log.e(TAG, "handleLike: Error adding match to current user", e));
+
+                    likedUserRef.update("matches", FieldValue.arrayUnion(userId))
+                            .addOnSuccessListener(aVoid -> Log.d(TAG, "handleLike: Match added to liked user"))
+                            .addOnFailureListener(e -> Log.e(TAG, "handleLike: Error adding match to liked user", e));
+                }
+            }
+        }).addOnFailureListener(e -> Log.e(TAG, "handleLike: Error checking liked user", e));
 
         seenUsers.add(likedUserId);
         currentUserRef.update("seenUsers", seenUsers)
